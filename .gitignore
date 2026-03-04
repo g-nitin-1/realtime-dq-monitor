@@ -1,0 +1,14 @@
+# Docs and assignment assets
+*.pdf
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Local environments
+.venv/
+
+# Runtime/generated data
+data/
