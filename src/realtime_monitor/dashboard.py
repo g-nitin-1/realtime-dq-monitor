@@ -13,6 +13,8 @@ from realtime_monitor.adapters.registry import ADAPTERS
 from realtime_monitor.cli import run_microbatch
 from realtime_monitor.config import MonitorConfig
 
+DEMO_DATA_PATH = Path("examples/demo_events.jsonl")
+
 
 def _make_config(db: Path, checkpoint: Path, digest: Path) -> MonitorConfig:
     cfg = MonitorConfig()
@@ -117,6 +119,40 @@ def _ensure_jsonl_input(path: Path) -> Path:
     return out
 
 
+def _run_ingestion(
+    *,
+    db_path: Path,
+    checkpoint_path: Path,
+    digest_path: Path,
+    input_path: Path,
+    batch_size: int,
+    adapter_name: str,
+    max_batches: int,
+    sleep_seconds: float,
+    min_volume: int,
+    dup_ratio: float,
+    null_ratio: float,
+    drift_ratio: float,
+    reset_state: bool,
+) -> None:
+    cfg = _make_config(db_path, checkpoint_path, digest_path)
+    cfg.batch_size = int(batch_size)
+    cfg.adapter_name = adapter_name
+    cfg.max_batches = int(max_batches) if int(max_batches) > 0 else None
+    cfg.sleep_seconds_per_batch = float(sleep_seconds)
+    cfg.min_volume_threshold = int(min_volume)
+    cfg.duplicate_ratio_threshold = float(dup_ratio)
+    cfg.null_ratio_threshold = float(null_ratio)
+    cfg.schema_drift_threshold = float(drift_ratio)
+
+    if reset_state:
+        for path in [cfg.sqlite_path, cfg.checkpoint_file, cfg.digest_path]:
+            if path.exists():
+                path.unlink()
+
+    run_microbatch(cfg, input_path)
+
+
 def main() -> None:
     try:
         import streamlit as st
@@ -137,8 +173,10 @@ def main() -> None:
         uploaded = st.file_uploader("Upload events file", type=["jsonl", "json", "txt"])
         local_path = st.text_input(
             "Or use existing local events path (.jsonl or .json)",
-            value="data/events_nyc_taxi.jsonl",
+            value=str(DEMO_DATA_PATH),
         )
+        if DEMO_DATA_PATH.exists():
+            st.caption(f"Demo dataset available: {DEMO_DATA_PATH}")
 
         st.markdown("### Runtime Settings")
         c1, c2, c3 = st.columns(3)
@@ -155,8 +193,34 @@ def main() -> None:
         drift_ratio = t4.number_input("Schema drift ratio", min_value=0.0, value=0.05, step=0.001, format="%.3f")
 
         reset_state = st.checkbox("Reset DB/checkpoint before run", value=False)
+        demo_col, run_col = st.columns(2)
 
-        if st.button("Run Ingestion", type="primary"):
+        if demo_col.button("Load Demo Data"):
+            if not DEMO_DATA_PATH.exists():
+                st.error(f"Demo dataset not found at {DEMO_DATA_PATH}.")
+            else:
+                with st.spinner("Running demo ingestion..."):
+                    try:
+                        _run_ingestion(
+                            db_path=db_path,
+                            checkpoint_path=checkpoint_path,
+                            digest_path=digest_path,
+                            input_path=DEMO_DATA_PATH,
+                            batch_size=int(batch_size),
+                            adapter_name=adapter_name,
+                            max_batches=int(max_batches),
+                            sleep_seconds=float(sleep_seconds),
+                            min_volume=int(min_volume),
+                            dup_ratio=float(dup_ratio),
+                            null_ratio=float(null_ratio),
+                            drift_ratio=float(drift_ratio),
+                            reset_state=reset_state,
+                        )
+                        st.success(f"Ingestion completed for: {DEMO_DATA_PATH}")
+                    except Exception as exc:  # noqa: BLE001
+                        st.exception(exc)
+
+        if run_col.button("Run Ingestion", type="primary"):
             input_path: Path | None = None
             if uploaded is not None:
                 uploads_dir = Path("data/uploads")
@@ -172,24 +236,23 @@ def main() -> None:
             if input_path is None:
                 st.error("Provide a dataset by upload or valid local path.")
             else:
-                cfg = _make_config(db_path, checkpoint_path, digest_path)
-                cfg.batch_size = int(batch_size)
-                cfg.adapter_name = adapter_name
-                cfg.max_batches = int(max_batches) if int(max_batches) > 0 else None
-                cfg.sleep_seconds_per_batch = float(sleep_seconds)
-                cfg.min_volume_threshold = int(min_volume)
-                cfg.duplicate_ratio_threshold = float(dup_ratio)
-                cfg.null_ratio_threshold = float(null_ratio)
-                cfg.schema_drift_threshold = float(drift_ratio)
-
-                if reset_state:
-                    for path in [cfg.sqlite_path, cfg.checkpoint_file, cfg.digest_path]:
-                        if path.exists():
-                            path.unlink()
-
                 with st.spinner("Running micro-batch ingestion..."):
                     try:
-                        run_microbatch(cfg, input_path)
+                        _run_ingestion(
+                            db_path=db_path,
+                            checkpoint_path=checkpoint_path,
+                            digest_path=digest_path,
+                            input_path=input_path,
+                            batch_size=int(batch_size),
+                            adapter_name=adapter_name,
+                            max_batches=int(max_batches),
+                            sleep_seconds=float(sleep_seconds),
+                            min_volume=int(min_volume),
+                            dup_ratio=float(dup_ratio),
+                            null_ratio=float(null_ratio),
+                            drift_ratio=float(drift_ratio),
+                            reset_state=reset_state,
+                        )
                         st.success(f"Ingestion completed for: {input_path}")
                     except Exception as exc:  # noqa: BLE001
                         st.exception(exc)

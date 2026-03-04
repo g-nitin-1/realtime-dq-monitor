@@ -24,6 +24,7 @@ Realtime (micro-batch) data-quality monitor with incident detection, alerting, S
 6. Optional dashboard:
    - `python3 -m pip install -e .[ui]`
    - `streamlit run src/realtime_monitor/dashboard.py`
+   - In the Ingest tab, click `Load Demo Data` to ingest `examples/demo_events.jsonl`.
 
 ## Implemented
 - Pipeline: ingest, schema validation, quarantine handling, metrics, rules/detectors, alerting.
