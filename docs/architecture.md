@@ -5,21 +5,21 @@ source -> adapter -> validation -> raw/silver/quarantine storage -> metrics -> d
 
 ```mermaid
 flowchart LR
-    A[JSONL Micro-Batch Source] --> B[Adapter Layer]
-    B --> C[Schema Validation]
-    B --> D[raw_events]
-    C -->|valid| E[silver_events]
-    C -->|invalid/quarantine| E
-    E --> F[Batch Metrics]
-    F --> G[Detectors]
-    G --> H[incidents]
-    G --> I[incident_evidence]
-    H --> J[Console Alert + Adapter]
-    E --> K[SQL Analytics]
+    A["JSONL Source"] --> B["Adapter"]
+    B --> C["Validation"]
+    B --> D["raw_events"]
+    C -->|valid| E["silver_events"]
+    C -->|invalid or quarantine| E
+    E --> F["Metrics"]
+    F --> G["Detection"]
+    G --> H["incidents"]
+    G --> I["incident_evidence"]
+    H --> J["Alerting"]
+    E --> K["Analytics"]
     F --> K
     H --> K
     I --> K
-    K --> L[Daily Digest (Polars)]
+    K --> L["Daily Digest"]
 ```
 
 ## Storage tables

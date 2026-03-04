@@ -39,10 +39,10 @@ Realtime (micro-batch) data-quality monitor with incident detection, alerting, S
   - `.github/workflows/deploy.yml`
   - deploy creates a GitHub Release on `v*` tags and uploads built artifacts
 
-## Assignment status
-- Completion matrix: `docs/assignment_completion_matrix.md`
-- Fully automated deliverables are implemented in code/docs.
-- Manual artifact still pending: demo video recording.
+## Project status
+- Current implementation status: `docs/project_status.md`
+- Core pipeline, analytics, dashboard, tests, and CI are implemented.
+- Ongoing improvements are tracked as product enhancements, not assignment deliverables.
 
 ## Data Flow
 - `any dataset payload -> adapter -> canonical event schema -> validation/quarantine -> metrics/incidents`

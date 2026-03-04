@@ -1,6 +1,6 @@
-# Assignment Completion Matrix
+# Project Status
 
-## Completed
+## Implemented
 - Python package structure, CI, tests, and docs scaffold.
 - Micro-batch ingest with checkpoint-based idempotency.
 - Raw payload capture in `raw_events` plus canonicalization via adapter layer.
@@ -10,6 +10,7 @@
 - SQL analytics: rolling windows, anomaly summary, SLA query.
 - Polars daily digest output.
 
-## Manual deliverables pending
-- 3-5 minute demo video with voiceover.
-- Optional dashboard or follow-up Q&A UI enhancements.
+## Next Enhancements
+- Dashboard UX improvements and richer analytics views.
+- More adapters for additional event formats/sources.
+- Production hardening (containerization, monitoring, backup strategy).
